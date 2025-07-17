@@ -17,5 +17,3 @@ func GetUsers(c *gin.Context, db *gorm.DB) {
 		"data":    results,
 	})
 }
-
-//
