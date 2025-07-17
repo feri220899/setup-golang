@@ -1,12 +1,12 @@
-package controller
+package CategoryController
 
 import (
 	// "golang-restfull-api/model/Category/categorymodel"
-	CategoryModel "golang-restfull-api/model/Category"
-	"net/http"
+	CategoryModel "golang-restfull-api/app/model/Category"
+	http "net/http"
 
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
+	gin "github.com/gin-gonic/gin"
+	gorm "gorm.io/gorm"
 )
 
 func GetUsers(c *gin.Context, db *gorm.DB) {
