@@ -13,7 +13,7 @@ Project REST API menggunakan Golang dengan struktur mirip Laravel. Menggunakan:
 
 ```bash
 # Clone repository
-git clone https://github.com/username/project-api.git
+git clone https://github.com/feri220899/setup-golang.git
 cd project-api
 
 # Buat file .env
