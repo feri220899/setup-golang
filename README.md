@@ -17,12 +17,11 @@ git clone https://github.com/feri220899/setup-golang.git
 cd project-api
 
 # Buat file .env
-echo "DB_DRIVER=mysql
 DB_USER=root
 DB_PASS=
 DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_NAME=golang_api" > .env
+DB_NAME=golang_api
 
 # Install dependency
 go mod tidy
