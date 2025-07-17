@@ -1,0 +1,36 @@
+# Binaries
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Output files
+*.out
+*.log
+
+# Build directories
+/bin/
+/build/
+/dist/
+
+# IDE/editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Dependency directories
+vendor/
+
+# Config/env files
+.env
+
+# GORM sqlite files (optional)
+*.db
+
+# Module cache
+go.sum
