@@ -24,6 +24,7 @@ func StartServer(router *gin.Engine) {
 	}
 
 	fmt.Printf("Server running at %s:%s", app_url, app_port)
+	fmt.Println(" with a timeout of", time_out, "seconds")
 	if err := s.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("ListenAndServe error: %v", err)
 	}

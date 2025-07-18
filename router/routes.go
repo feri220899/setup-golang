@@ -1,18 +1,26 @@
 package routes
 
 import (
-	CategoryController "golang-restfull-api/app/http/controller"
+	controller "golang-restfull-api/app/http/controller"
+	middleware "golang-restfull-api/app/http/middleware"
 
 	gin "github.com/gin-gonic/gin"
 	gorm "gorm.io/gorm"
 )
 
-func UserRoutes(r *gin.Engine, db *gorm.DB) {
-	userGroup := r.Group("/users")
+func UserRoutes(router *gin.Engine, db *gorm.DB) {
+	userGroup := router.Group("/users")
 	{
-		userGroup.GET("", func(c *gin.Context) {
-			CategoryController.GetUsers(c, db)
+		userGroup.GET("", middleware.UserMiddleware, func(request *gin.Context) {
+			controller.GetUsers(request, db)
 		})
-		// Tambah PUT, DELETE, GET by ID
 	}
+
+	authorGroup := router.Group("/auth")
+	{
+		authorGroup.POST("/login", func(request *gin.Context) {
+			controller.GetToken(request, db)
+		})
+	}
+
 }
