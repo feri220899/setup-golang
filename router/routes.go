@@ -21,6 +21,10 @@ func UserRoutes(router *gin.Engine, db *gorm.DB) {
 		authorGroup.POST("/login", func(request *gin.Context) {
 			controller.GetToken(request, db)
 		})
+
+		authorGroup.POST("/refresh-token", func(request *gin.Context) {
+			controller.RefreshToken(request, db)
+		})
 	}
 
 }

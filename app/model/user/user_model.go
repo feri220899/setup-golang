@@ -3,10 +3,11 @@ package user
 import "github.com/golang-jwt/jwt/v5"
 
 type UserModel struct {
-	UserName     string
-	Password     string
-	SecretKey    string
-	Refreshtoken string
+	Id            uint `gorm:"primaryKey"`
+	Username      string
+	Password      string
+	Secret_key    string
+	Refresh_token string
 }
 
 type JWTClaim struct {
