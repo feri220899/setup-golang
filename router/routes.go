@@ -29,6 +29,10 @@ func UserRoutes(router *gin.Engine, db *gorm.DB) {
 		userGroup.POST("/import-data", middleware.UserMiddleware, func(request *gin.Context) {
 			controller.ImportData(request, db)
 		})
+
+		userGroup.POST("/import-data-progres", middleware.UserMiddleware, func(request *gin.Context) {
+			controller.ImportProgres(request, db)
+		})
 	}
 
 }
