@@ -9,13 +9,6 @@ import (
 )
 
 func UserRoutes(router *gin.Engine, db *gorm.DB) {
-	userGroup := router.Group("/users")
-	{
-		userGroup.GET("", middleware.UserMiddleware, func(request *gin.Context) {
-			controller.GetUsers(request, db)
-		})
-	}
-
 	authorGroup := router.Group("/auth")
 	{
 		authorGroup.POST("/login", func(request *gin.Context) {
@@ -24,6 +17,17 @@ func UserRoutes(router *gin.Engine, db *gorm.DB) {
 
 		authorGroup.POST("/refresh-token", func(request *gin.Context) {
 			controller.RefreshToken(request, db)
+		})
+	}
+
+	userGroup := router.Group("/users")
+	{
+		userGroup.GET("", middleware.UserMiddleware, func(request *gin.Context) {
+			controller.GetUsers(request, db)
+		})
+
+		userGroup.POST("/import-data", middleware.UserMiddleware, func(request *gin.Context) {
+			controller.ImportData(request, db)
 		})
 	}
 
