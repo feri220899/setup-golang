@@ -12,7 +12,7 @@
 /bin/
 /build/
 /dist/
-# /public/uploads/
+/public/uploads/
 
 # IDE/editor files
 .vscode/
