@@ -12,6 +12,7 @@
 /bin/
 /build/
 /dist/
+# /public/uploads/
 
 # IDE/editor files
 .vscode/
