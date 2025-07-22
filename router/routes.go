@@ -22,15 +22,21 @@ func UserRoutes(router *gin.Engine, db *gorm.DB) {
 	}
 	userGroup := apiGroup.Group("/users")
 	{
-		userGroup.GET("", middleware.UserMiddleware, func(request *gin.Context) {
+		userGroup.GET("", func(ctx *gin.Context) {
+			middleware.UserMiddleware(ctx, db)
+		}, func(request *gin.Context) {
 			controller.GetUsers(request, db)
 		})
 
-		userGroup.POST("/import-data", middleware.UserMiddleware, func(request *gin.Context) {
+		userGroup.POST("/import-data", func(ctx *gin.Context) {
+			middleware.UserMiddleware(ctx, db)
+		}, func(request *gin.Context) {
 			controller.ImportData(request, db)
 		})
 
-		userGroup.POST("/import-data-progres", middleware.UserMiddleware, func(request *gin.Context) {
+		userGroup.POST("/import-data-progres", func(ctx *gin.Context) {
+			middleware.UserMiddleware(ctx, db)
+		}, func(request *gin.Context) {
 			controller.ImportProgres(request, db)
 		})
 	}

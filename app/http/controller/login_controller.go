@@ -80,14 +80,33 @@ func GetToken(request *gin.Context, db *gorm.DB) {
 
 func RefreshToken(request *gin.Context, db *gorm.DB) {
 	// FROM REQUEST
-	request_token := request.GetHeader("refresh_token")
+	refresh_token := request.GetHeader("refresh_token")
+	user_key := request.GetHeader("user_key")
+
+	var user usermodel.UserModel
+
+	// CHECK IF REQUEST TOKEN IS EMPTY
+	if refresh_token == "" || user_key == "" {
+		request.JSON(http.StatusUnauthorized, gin.H{"error": "User Key Or Refresh Token required"})
+		return
+	}
 
 	// FROM DB
-	var user usermodel.UserModel
-	result := db.Table("users").Where("refresh_token", request_token).First(&user)
-	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			request.JSON(http.StatusUnauthorized, gin.H{"error": "Refresh token not found"})
+	user_key_db := db.Table("users").Where("user_key", user_key).First(&user)
+	if user_key_db.Error != nil {
+		if errors.Is(user_key_db.Error, gorm.ErrRecordNotFound) {
+			request.JSON(http.StatusUnauthorized, gin.H{"error": "User Key not found"})
+			return
+		}
+		request.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		return
+	}
+
+	// CHECK IF REQUEST TOKEN IS EMPTY
+	refresh_token_db := db.Table("users").Where("refresh_token", refresh_token).First(&user)
+	if refresh_token_db.Error != nil {
+		if errors.Is(refresh_token_db.Error, gorm.ErrRecordNotFound) {
+			request.JSON(http.StatusUnauthorized, gin.H{"error": "Request token not found"})
 			return
 		}
 		request.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
@@ -100,14 +119,10 @@ func RefreshToken(request *gin.Context, db *gorm.DB) {
 		return
 	}
 
-	// validate timestamp
-	timestamp := time.Now().Unix()
-
 	// DECRYPT AND CHECK EXPIRATION
-	hashed_token, _ := helper.Decrypt(request_token, viper.GetString("API_SECRET_KEY"))
+	hashed_token, _ := helper.Decrypt(refresh_token, viper.GetString("API_SECRET_KEY"))
 	parts := strings.SplitN(hashed_token, "|", 2)
 	expired_at_part := parts[1]
-
 	expired_at, err := time.Parse(time.RFC3339, expired_at_part)
 	if err != nil || time.Now().After(expired_at) {
 		request.JSON(http.StatusUnauthorized, gin.H{"error": "Refresh token expired"})
@@ -119,9 +134,8 @@ func RefreshToken(request *gin.Context, db *gorm.DB) {
 			return
 		} else {
 			request.JSON(http.StatusOK, gin.H{
-				"message":   "success",
-				"token":     tokenString,
-				"timestamp": timestamp,
+				"message": "success",
+				"token":   tokenString,
 			})
 		}
 	}

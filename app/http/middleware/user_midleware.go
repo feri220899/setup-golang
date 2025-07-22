@@ -10,14 +10,24 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/spf13/viper"
+	"gorm.io/gorm"
 )
 
-func UserMiddleware(request *gin.Context) {
-	auth_header := request.GetHeader("x-token")
+func UserMiddleware(request *gin.Context, db *gorm.DB) {
+	auth_header := request.GetHeader("X-token")
 	secret_key := viper.GetString("API_SECRET_KEY")
+	user_key := request.GetHeader("user_key")
 
-	if auth_header == "" || !strings.HasPrefix(auth_header, "") || secret_key == "" {
-		request.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authorization token required"})
+	if auth_header == "" || !strings.HasPrefix(auth_header, "") || user_key == "" {
+		request.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "User key or token required"})
+		return
+	}
+
+	// FROM DB
+	var user usermodel.UserModel
+	user_key_db := db.Table("users").Where("user_key", user_key).First(&user)
+	if user_key_db.Error != nil {
+		request.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "User key not found"})
 		return
 	}
 
