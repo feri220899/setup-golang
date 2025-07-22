@@ -9,7 +9,8 @@ import (
 )
 
 func UserRoutes(router *gin.Engine, db *gorm.DB) {
-	authorGroup := router.Group("/auth")
+	apiGroup := router.Group("/api")
+	authorGroup := apiGroup.Group("/auth")
 	{
 		authorGroup.POST("/login", func(request *gin.Context) {
 			controller.GetToken(request, db)
@@ -19,8 +20,7 @@ func UserRoutes(router *gin.Engine, db *gorm.DB) {
 			controller.RefreshToken(request, db)
 		})
 	}
-
-	userGroup := router.Group("/users")
+	userGroup := apiGroup.Group("/users")
 	{
 		userGroup.GET("", middleware.UserMiddleware, func(request *gin.Context) {
 			controller.GetUsers(request, db)

@@ -12,6 +12,7 @@ import (
 	gin "github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"github.com/spf13/viper"
 	gorm "gorm.io/gorm"
 )
 
@@ -26,7 +27,7 @@ func generateToken(user usermodel.UserModel, expired int) (string, error) {
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString([]byte(user.Secret_key))
+	tokenString, err := token.SignedString([]byte(viper.GetString("API_SECRET_KEY")))
 	return tokenString, err
 }
 
@@ -57,7 +58,7 @@ func GetToken(request *gin.Context, db *gorm.DB) {
 			return
 		}
 
-		refresh_token, err := generateRefreshToken(24*60, user.Secret_key)
+		refresh_token, err := generateRefreshToken(12*60, viper.GetString("API_SECRET_KEY"))
 		if err != nil {
 			request.JSON(http.StatusInternalServerError, gin.H{"error": "Refresh token signing failed"})
 			return
@@ -80,7 +81,6 @@ func GetToken(request *gin.Context, db *gorm.DB) {
 func RefreshToken(request *gin.Context, db *gorm.DB) {
 	// FROM REQUEST
 	request_token := request.GetHeader("refresh_token")
-	secret_key := request.GetHeader("x-secret-key")
 
 	// FROM DB
 	var user usermodel.UserModel
@@ -100,8 +100,11 @@ func RefreshToken(request *gin.Context, db *gorm.DB) {
 		return
 	}
 
+	// validate timestamp
+	timestamp := time.Now().Unix()
+
 	// DECRYPT AND CHECK EXPIRATION
-	hashed_token, _ := helper.Decrypt(request_token, secret_key)
+	hashed_token, _ := helper.Decrypt(request_token, viper.GetString("API_SECRET_KEY"))
 	parts := strings.SplitN(hashed_token, "|", 2)
 	expired_at_part := parts[1]
 
@@ -116,10 +119,10 @@ func RefreshToken(request *gin.Context, db *gorm.DB) {
 			return
 		} else {
 			request.JSON(http.StatusOK, gin.H{
-				"message": "success",
-				"token":   tokenString,
+				"message":   "success",
+				"token":     tokenString,
+				"timestamp": timestamp,
 			})
 		}
 	}
-
 }

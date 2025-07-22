@@ -9,11 +9,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/spf13/viper"
 )
 
 func UserMiddleware(request *gin.Context) {
 	auth_header := request.GetHeader("x-token")
-	secret_key := request.GetHeader("x-secret-key")
+	secret_key := viper.GetString("API_SECRET_KEY")
 
 	if auth_header == "" || !strings.HasPrefix(auth_header, "") || secret_key == "" {
 		request.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authorization token required"})

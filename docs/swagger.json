@@ -7,235 +7,186 @@
     },
     "servers": [
         {
-            "url": "https://localhost:3000/api",
+            "url": "https://localhost:8080/api",
             "description": "development server"
         }
     ],
     "components": {
-        "schemas": {
-            "Category": {
-                "type": "object",
-                "properties": {
-                    "code": {
-                        "type": "number"
-                    },
-                    "status": {
-                        "type": "string"
-                    },
-                    "data": {
-                        "type": "object",
-                        "properties": {
-                            "id": {
-                                "type": "number"
-                            },
-                            "name": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            },
-            "CreateOrUpdateCategory": {
-                "type": "object",
-                "properties": {
-                    "name": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
         "securitySchemes": {
             "categoryAuth": {
-                "type": "apiKey",
-                "in": "header",
-                "name": "x-api-key",
-                "description": "API key for accessing the Categories API"
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
             }
         }
     },
     "paths": {
-        "/categories": {
-            "get": {
-                "tags": [
-                    "Categories API"
-                ],
-                "summary": "List all categories",
-                "description": "List all categories",
-                "security": [
-                    {
-                        "categoryAuth": []
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "A list of categories",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Category"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
+        "/auth/login": {
             "post": {
                 "tags": [
-                    "Categories API"
+                    "Auth"
                 ],
-                "summary": "Create a new category",
-                "security": [
-                    {
-                        "categoryAuth": []
-                    }
-                ],
+                "summary": "Login User",
+                "operationId": "loginUser",
                 "requestBody": {
+                    "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/CreateOrUpdateCategory"
+                                "type": "object",
+                                "properties": {
+                                    "username": {
+                                        "type": "string",
+                                        "example": "User123"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "Password123"
+                                    }
+                                }
                             }
                         }
                     }
                 },
-                "description": "Create a new category",
                 "responses": {
-                    "201": {
-                        "description": "Category created successfully",
+                    "200": {
+                        "description": "Successful login",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Category"
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "token": {
+                                            "type": "string",
+                                            "example": "eyJhbGciOinR5cCI6IkpXVCJ9.eyJVc2VyTm6InVzZXIxMjMiLCJzdWIiOiJhY2Nlc3NfdG9rZW4iLCJleHAiOjE3NTMxNTY0NTksImlhdCI6MTc1MzE1NjM5OX0.tQ55dxUX_8mMlbGjuZavr6Vp6I160dnrYUUgjNcPzx4"
+                                        },
+                                        "refresh_token": {
+                                            "type": "string",
+                                            "example": "iDAlpZ++pWWSDmNXfE/ex76iXxcMvG8MOdfr+wEjxMhPKYGT75UA0kHoeYRWA+zptr9n7IRwlB36hsjGKSQ03JobrYsbk2dhjqS+"
+                                        }
+                                    }
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
                     }
                 }
             }
         },
-        "/getCategory/{id}": {
+        "/auth/refresh-token": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Login User",
+                "operationId": "loginUser",
+                "parameters": [
+                    {
+                        "name": "header",
+                        "in": "header",
+                        "required": true,
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "refresh_token": {
+                                            "type": "string",
+                                            "example": "mLQXwiWFB0PzTm+SvJrhE7+d50wvZLYGe27CF35Mrkirr4eBJdZkUCQeF3+D4ye3oYyaA6PGH803KIGt9H"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful login",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "token": {
+                                            "type": "string",
+                                            "example": "eyJhbGciOinR5cCI6IkpXVCJ9.eyJVc2VyTm6InVzZXIxMjMiLCJzdWIiOiJhY2Nlc3NfdG9rZW4iLCJleHAiOjE3NTMxNTY0NTksImlhdCI6MTc1MzE1NjM5OX0.tQ55dxUX_8mMlbGjuZavr6Vp6I160dnrYUUgjNcPzx4"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                }
+            }
+        },
+        "/api/users": {
             "get": {
                 "tags": [
-                    "Categories API"
+                    "Users"
                 ],
-                "summary": "Get a category by ID",
-                "description": "Get a category by ID",
-                "security": [
-                    {
-                        "categoryAuth": []
-                    }
-                ],
+                "summary": "Get Users",
+                "operationId": "getUsers",
                 "parameters": [
                     {
-                        "name": "categoryId",
-                        "in": "path",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true,
                         "schema": {
                             "type": "object",
                             "properties": {
-                                "id": {
-                                    "type": "number"
+                                "x-token": {
+                                    "type": "string",
+                                    "example": "Bearer eyJhbGciOinR5cCI6IkpXVCJ9.eyJVc2VyTm6InVzZXIxMjMiLCJzdWIiOiJhY2Nlc3NfdG9rZW4iLCJleHAiOjE3NTMxNTY0NTksImlhdCI6MTc1MzE1NjM5OX0.tQ55dxUX_8mMlbGjuZavr6Vp6I160dnrYUUgjNcPzx4"
                                 }
                             }
-                        }
+                        },
+                        "description": "Access token in Bearer format"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "successfully retrieved category",
+                        "description": "Successful retrieval of users",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Category"
+                                    "type": "array",
+                                    "example": [
+                                        {
+                                            "id": 1,
+                                            "username": "johndoe",
+                                            "email": "johndoe@example.com"
+                                        },
+                                        {
+                                            "id": 2,
+                                            "username": "janedoe",
+                                            "email": "janedoe@example.com"
+                                        },
+                                        {
+                                            "id": 3,
+                                            "username": "alice",
+                                            "email": "alice@example.com"
+                                        }
+                                    ]
                                 }
                             }
                         }
                     },
-                    "404": {
-                        "description": "Category not found"
-                    }
-                }
-            },
-            "put": {
-                "tags": [
-                    "Categories API"
-                ],
-                "summary": "Update a category by ID",
-                "description": "Update a category by ID",
-                "security": [
-                    {
-                        "categoryAuth": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "name": "categoryId",
-                        "in": "path",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "id": {
-                                    "type": "number"
-                                }
-                            }
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/CreateOrUpdateCategory"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Category updated successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Category"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Category not found"
-                    }
-                }
-            },
-            "delete": {
-                "tags": [
-                    "Categories API"
-                ],
-                "summary": "Delete a category by ID",
-                "description": "Delete a category by ID",
-                "security": [
-                    {
-                        "categoryAuth": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "name": "categoryId",
-                        "in": "path",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "id": {
-                                    "type": "number"
-                                }
-                            }
-                        }
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "Category deleted successfully"
-                    },
-                    "404": {
-                        "description": "Category not found"
+                    "401": {
+                        "description": "Unauthorized"
                     }
                 }
             }
