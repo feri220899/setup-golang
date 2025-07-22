@@ -1,9 +1,10 @@
-package Config
+package config
 
 import (
 	"fmt"
 	"log"
 
+	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	mysql "gorm.io/driver/mysql"
 	postgres "gorm.io/driver/postgres"
@@ -64,4 +65,11 @@ func ConnectDB() *gorm.DB {
 		log.Fatal("Gagal koneksi ke database:", err)
 	}
 	return db
+}
+
+// Helper function to inject db dependency
+func Routes(db *gorm.DB, handler func(*gin.Context, *gorm.DB)) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		handler(c, db)
+	}
 }
