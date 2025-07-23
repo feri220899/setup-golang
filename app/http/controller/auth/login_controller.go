@@ -20,6 +20,7 @@ func generateToken(user usermodel.UserModel, expired int) (string, error) {
 	expirationTime := time.Now().Add(time.Duration(expired) * time.Minute)
 	claims := &usermodel.JWTClaim{
 		UserName: user.Username,
+		User_key: user.User_key,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

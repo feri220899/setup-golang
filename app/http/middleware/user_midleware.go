@@ -32,8 +32,8 @@ func UserMiddleware(request *gin.Context, db *gorm.DB) {
 	}
 
 	tokenStr := strings.TrimPrefix(auth_header, "")
-	_, err := ValidateJWT(tokenStr, secret_key)
-	if err != nil {
+	claims, err := ValidateJWT(tokenStr, secret_key)
+	if err != nil || claims.User_key != user.User_key || claims.UserName != user.Username {
 		request.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
 		return
 	}
@@ -42,14 +42,12 @@ func UserMiddleware(request *gin.Context, db *gorm.DB) {
 
 func ValidateJWT(tokenStr string, secret_key string) (*usermodel.JWTClaim, error) {
 	claims := &usermodel.JWTClaim{}
-
 	token, err := jwt.ParseWithClaims(tokenStr, claims, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
 		}
 		return []byte(secret_key), nil
 	})
-
 	if err != nil || !token.Valid {
 		return nil, err
 	}
