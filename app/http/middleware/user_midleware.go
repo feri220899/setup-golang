@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"golang-restfull-api/app/helper"
 	usermodel "golang-restfull-api/app/model/user"
 
 	"github.com/gin-gonic/gin"
@@ -42,7 +43,11 @@ func UserMiddleware(request *gin.Context, db *gorm.DB) {
 
 func ValidateJWT(tokenStr string, secret_key string) (*usermodel.JWTClaim, error) {
 	claims := &usermodel.JWTClaim{}
-	token, err := jwt.ParseWithClaims(tokenStr, claims, func(t *jwt.Token) (interface{}, error) {
+	token_decoded, err := helper.Decrypt(tokenStr, viper.GetString("API_TOKEN_KEY"))
+	if err != nil {
+		return nil, fmt.Errorf("token failed: %w", err)
+	}
+	token, err := jwt.ParseWithClaims(token_decoded, claims, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
 		}

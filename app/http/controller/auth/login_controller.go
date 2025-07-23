@@ -28,8 +28,9 @@ func generateToken(user usermodel.UserModel, expired int) (string, error) {
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString([]byte(viper.GetString("API_SECRET_KEY")))
-	return tokenString, err
+	tokenString, _ := token.SignedString([]byte(viper.GetString("API_SECRET_KEY")))
+	hashedToken, err := helper.Encrypt(tokenString, viper.GetString("API_TOKEN_KEY"))
+	return hashedToken, err
 }
 
 func generateRefreshToken(expired int, Secret_key string) (string, error) {
