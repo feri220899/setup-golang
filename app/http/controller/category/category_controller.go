@@ -1,4 +1,4 @@
-package controller
+package categorycontroller
 
 import (
 	"encoding/base64"
@@ -6,6 +6,7 @@ import (
 	"golang-restfull-api/app/helper"
 	categorymodel "golang-restfull-api/app/model/category"
 	"golang-restfull-api/app/model/import/testmodule"
+	usermodel "golang-restfull-api/app/model/user"
 	"golang-restfull-api/app/service"
 	http "net/http"
 	"os"
@@ -65,6 +66,14 @@ func ImportData(request *gin.Context, db *gorm.DB) {
 
 func ImportProgres(request *gin.Context, db *gorm.DB) {
 	import_status_id := request.PostForm("import_status_id")
+	user_key := request.GetHeader("user_key")
+
+	var user usermodel.UserModel
+	user_key_db := db.Table("users").Where("user_key", user_key).First(&user)
+	if user_key_db.Error != nil {
+		return
+	}
+
 	var import_status testmodule.TestModule
 	if err := db.Table("import_status").Where("id", import_status_id).First(&import_status).Error; err != nil {
 		request.JSON(http.StatusNotFound, gin.H{
@@ -109,6 +118,7 @@ func ImportProgres(request *gin.Context, db *gorm.DB) {
 					Nama_Kolom7: row[6],
 					Nama_Kolom8: row[7],
 					Nama_Kolom9: row[8],
+					User_id:     user.Id,
 				})
 				numrow++
 			}
@@ -139,4 +149,53 @@ func ImportProgres(request *gin.Context, db *gorm.DB) {
 			"Import_start": import_status.Import_start,
 		})
 	}
+}
+
+type DataExcel struct {
+	Id          uint   `json:"id"`
+	Nama_Kolom1 string `json:"nama_kolom1"`
+	Nama_Kolom2 string `json:"nama_kolom2"`
+	Nama_Kolom9 string `json:"nama_kolom9"`
+	User_id     uint   `json:"user_id"`
+}
+
+func (DataExcel) TableName() string {
+	return "data_excel"
+}
+
+type ImportStatus struct {
+	Id               uint        `json:"id"`
+	Import_file_path string      `json:"import_file_path"`
+	Import_total_row int         `json:"import_total_row"`
+	User_id          uint        `json:"user_id"`
+	Data_excel       []DataExcel `gorm:"foreignKey:User_id;references:User_id" json:"data_excel"`
+}
+
+func (ImportStatus) TableName() string {
+	return "import_status"
+}
+
+type User struct {
+	Id            uint           `json:"id"`
+	Username      string         `json:"username"`
+	Import_status []ImportStatus `gorm:"foreignKey:User_id;references:Id" json:"import_status"`
+}
+
+func (User) TableName() string {
+	return "users"
+}
+func GetDataImport(request *gin.Context, db *gorm.DB) {
+
+	var user []User
+	db.Preload("Import_status.Data_excel").
+		Preload("Import_status").
+		Table("users").
+		Select("id, username").
+		Find(&user)
+
+	request.JSON(http.StatusOK, gin.H{
+		"message": "success",
+		"data":    user,
+	})
+
 }

@@ -1,4 +1,4 @@
-package controller
+package authcontroller
 
 import (
 	"errors"
@@ -128,7 +128,7 @@ func RefreshToken(request *gin.Context, db *gorm.DB) {
 		request.JSON(http.StatusUnauthorized, gin.H{"error": "Refresh token expired"})
 		return
 	} else {
-		tokenString, err := generateToken(user, 1)
+		tokenString, err := generateToken(user, 100)
 		if err != nil {
 			request.JSON(http.StatusInternalServerError, gin.H{"error": "Token signing failed"})
 			return

@@ -7,6 +7,11 @@ type TestModule struct {
 	Import_start     int    `json:"import_start"`
 	Import_batch     int    `json:"import_batch"`
 	Import_total_row int    `json:"import_total_row"`
+	User_id          uint   `json:"user_id"`
+}
+
+func (TestModule) TableName() string {
+	return "import_status"
 }
 
 type DataExcel struct {
@@ -20,4 +25,9 @@ type DataExcel struct {
 	Nama_Kolom7 string `json:"nama_kolom7"`
 	Nama_Kolom8 string `json:"nama_kolom8"`
 	Nama_Kolom9 string `json:"nama_kolom9"`
+	User_id     uint   `json:"user_id"`
+}
+
+func (DataExcel) TableName() string {
+	return "data_excel"
 }
