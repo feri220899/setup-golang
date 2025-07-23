@@ -83,14 +83,13 @@ func RefreshToken(request *gin.Context, db *gorm.DB) {
 	refresh_token := request.GetHeader("refresh_token")
 	user_key := request.GetHeader("user_key")
 
-	var user usermodel.UserModel
-
 	// CHECK IF REQUEST TOKEN IS EMPTY
 	if refresh_token == "" || user_key == "" {
 		request.JSON(http.StatusUnauthorized, gin.H{"error": "User Key Or Refresh Token required"})
 		return
 	}
 
+	var user usermodel.UserModel
 	// FROM DB
 	user_key_db := db.Table("users").Where("user_key", user_key).First(&user)
 	if user_key_db.Error != nil {
@@ -113,12 +112,6 @@ func RefreshToken(request *gin.Context, db *gorm.DB) {
 		return
 	}
 
-	// CHECK IF EXPIRED
-	if user == (usermodel.UserModel{}) {
-		request.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid refresh token"})
-		return
-	}
-
 	// DECRYPT AND CHECK EXPIRATION
 	hashed_token, _ := helper.Decrypt(refresh_token, viper.GetString("API_SECRET_KEY"))
 	parts := strings.SplitN(hashed_token, "|", 2)
@@ -128,7 +121,7 @@ func RefreshToken(request *gin.Context, db *gorm.DB) {
 		request.JSON(http.StatusUnauthorized, gin.H{"error": "Refresh token expired"})
 		return
 	} else {
-		tokenString, err := generateToken(user, 100)
+		tokenString, err := generateToken(user, 100) // 100 minutes
 		if err != nil {
 			request.JSON(http.StatusInternalServerError, gin.H{"error": "Token signing failed"})
 			return

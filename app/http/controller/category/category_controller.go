@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"golang-restfull-api/app/helper"
 	categorymodel "golang-restfull-api/app/model/category"
-	"golang-restfull-api/app/model/import/testmodule"
+	excelmodel "golang-restfull-api/app/model/import/excel"
 	usermodel "golang-restfull-api/app/model/user"
 	"golang-restfull-api/app/service"
 	http "net/http"
@@ -43,7 +43,7 @@ func ImportData(request *gin.Context, db *gorm.DB) {
 	}
 
 	// Simpan ke database
-	import_status := testmodule.TestModule{
+	import_status := excelmodel.ImportStatus{
 		Import_file_path: path_encode,
 		Import_status:    "processing",
 		Import_start:     1,
@@ -74,7 +74,7 @@ func ImportProgres(request *gin.Context, db *gorm.DB) {
 		return
 	}
 
-	var import_status testmodule.TestModule
+	var import_status excelmodel.ImportStatus
 	if err := db.Table("import_status").Where("id", import_status_id).First(&import_status).Error; err != nil {
 		request.JSON(http.StatusNotFound, gin.H{
 			"error": "Import status not found",
@@ -83,7 +83,7 @@ func ImportProgres(request *gin.Context, db *gorm.DB) {
 	}
 	if import_status.Import_status == "processing" {
 		if import_status.Import_start >= import_status.Import_total_row {
-			db.Table("import_status").Where("id", import_status_id).Updates(&testmodule.TestModule{
+			db.Table("import_status").Where("id", import_status_id).Updates(&excelmodel.ImportStatus{
 				Import_status: "completed",
 			})
 			request.JSON(http.StatusOK, gin.H{
@@ -97,7 +97,7 @@ func ImportProgres(request *gin.Context, db *gorm.DB) {
 			batch := import_status.Import_batch
 			file_read, _ := excelize.OpenFile(string(path_decode))
 
-			var data []testmodule.DataExcel
+			var data []excelmodel.DataExcel
 			rows, _ := file_read.GetRows("Sheet1")
 			numrow := 0
 			for _, row := range rows {
@@ -108,7 +108,7 @@ func ImportProgres(request *gin.Context, db *gorm.DB) {
 				if numrow >= start+batch {
 					break
 				}
-				data = append(data, testmodule.DataExcel{
+				data = append(data, excelmodel.DataExcel{
 					Nama_Kolom1: row[0],
 					Nama_Kolom2: row[1],
 					Nama_Kolom3: row[2],
@@ -123,7 +123,7 @@ func ImportProgres(request *gin.Context, db *gorm.DB) {
 				numrow++
 			}
 			new_start := min(start+batch, import_status.Import_total_row)
-			db.Table("import_status").Where("id", import_status_id).Updates(&testmodule.TestModule{
+			db.Table("import_status").Where("id", import_status_id).Updates(&excelmodel.ImportStatus{
 				Import_start: new_start,
 			})
 
@@ -151,51 +151,34 @@ func ImportProgres(request *gin.Context, db *gorm.DB) {
 	}
 }
 
-type DataExcel struct {
-	Id          uint   `json:"id"`
-	Nama_Kolom1 string `json:"nama_kolom1"`
-	Nama_Kolom2 string `json:"nama_kolom2"`
-	Nama_Kolom9 string `json:"nama_kolom9"`
-	User_id     uint   `json:"user_id"`
-}
-
-func (DataExcel) TableName() string {
-	return "data_excel"
-}
-
-type ImportStatus struct {
-	Id               uint        `json:"id"`
-	Import_file_path string      `json:"import_file_path"`
-	Import_total_row int         `json:"import_total_row"`
-	User_id          uint        `json:"user_id"`
-	Data_excel       []DataExcel `gorm:"foreignKey:User_id;references:User_id" json:"data_excel"`
-}
-
-func (ImportStatus) TableName() string {
-	return "import_status"
-}
-
-type User struct {
-	Id            uint           `json:"id"`
-	Username      string         `json:"username"`
-	Import_status []ImportStatus `gorm:"foreignKey:User_id;references:Id" json:"import_status"`
-}
-
-func (User) TableName() string {
-	return "users"
-}
+// Ambil Data Import dengan NESTED import_status dan data_excel yang ada di dalam nested import_status
 func GetDataImport(request *gin.Context, db *gorm.DB) {
 
-	var user []User
-	db.Preload("Import_status.Data_excel").
-		Preload("Import_status").
+	var user []usermodel.UserModel
+	db.Preload("Import_status").
+		Preload("Import_status.Data_excel").
 		Table("users").
-		Select("id, username").
 		Find(&user)
 
 	request.JSON(http.StatusOK, gin.H{
 		"message": "success",
 		"data":    user,
 	})
+}
 
+// Ambil Data Excel per bulan dan tahun dengan NESTED data_dumy
+func GetDataImportBulanTahun(request *gin.Context, db *gorm.DB) {
+	bulan := request.Param("bulan")
+	tahun := request.Param("tahun")
+
+	var data []excelmodel.DataExcel
+	db.Preload("Dumy_data").
+		Table("data_excel").
+		Where("bulan = ?", bulan).
+		Where("tahun = ?", tahun).
+		Find(&data)
+	request.JSON(http.StatusOK, gin.H{
+		"message": "success",
+		"data":    data,
+	})
 }

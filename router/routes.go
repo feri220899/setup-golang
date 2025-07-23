@@ -24,7 +24,8 @@ func UserRoutes(router *gin.Engine, db *gorm.DB) {
 			users.GET("", config.Routes(db, categorycontroller.GetUsers))
 			users.POST("/import-data", config.Routes(db, categorycontroller.ImportData))
 			users.POST("/import-data-progress", config.Routes(db, categorycontroller.ImportProgres))
-			users.GET("/get-data-import/:id", config.Routes(db, categorycontroller.GetDataImport))
+			users.GET("/get-data-import", config.Routes(db, categorycontroller.GetDataImport))
+			users.GET("/get-data-perbulan-pertahun/:bulan/:tahun", config.Routes(db, categorycontroller.GetDataImportBulanTahun))
 		}
 	}
 }

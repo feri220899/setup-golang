@@ -1,13 +1,18 @@
 package user
 
-import "github.com/golang-jwt/jwt/v5"
+import (
+	excelmodel "golang-restfull-api/app/model/import/excel"
+
+	"github.com/golang-jwt/jwt/v5"
+)
 
 type UserModel struct {
 	Id            uint `gorm:"primaryKey"`
 	Username      string
 	Password      string
-	Secret_key    string
+	User_key      string
 	Refresh_token string
+	Import_status []excelmodel.ImportStatus `gorm:"foreignKey:User_id;references:Id"`
 }
 
 type JWTClaim struct {
