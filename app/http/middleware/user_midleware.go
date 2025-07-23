@@ -51,5 +51,6 @@ func ValidateJWT(tokenStr string, secret_key string) (*usermodel.JWTClaim, error
 	if err != nil || !token.Valid {
 		return nil, err
 	}
+
 	return claims, nil
 }
