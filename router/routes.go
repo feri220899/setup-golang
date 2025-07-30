@@ -1,8 +1,8 @@
 package routes
 
 import (
+	asersicontroller "golang-restfull-api/app/http/controller/asersi"
 	authcontroller "golang-restfull-api/app/http/controller/auth"
-	categorycontroller "golang-restfull-api/app/http/controller/category"
 	middleware "golang-restfull-api/app/http/middleware"
 	config "golang-restfull-api/config"
 
@@ -19,13 +19,19 @@ func UserRoutes(router *gin.Engine, db *gorm.DB) {
 			auth.POST("/login", config.Routes(db, authcontroller.GetToken))
 			auth.POST("/refresh-token", config.Routes(db, authcontroller.RefreshToken))
 		}
-		users := api.Group("/users").Use(config.Routes(db, middleware.UserMiddleware))
+		// users := api.Group("/users").Use(config.Routes(db, middleware.UserMiddleware))
+		// {
+		// 	users.GET("", config.Routes(db, categorycontroller.GetUsers))
+		// 	users.POST("/import-data", config.Routes(db, categorycontroller.ImportData))
+		// 	users.POST("/import-data-progress", config.Routes(db, categorycontroller.ImportProgres))
+		// 	users.GET("/get-data-import", config.Routes(db, categorycontroller.GetDataImport))
+		// 	users.GET("/get-data-perbulan-pertahun/:bulan/:tahun", config.Routes(db, categorycontroller.GetDataImportBulanTahun))
+		// }
+
+		asersi := api.Group("/asersi").Use(config.Routes(db, middleware.UserMiddleware))
 		{
-			users.GET("", config.Routes(db, categorycontroller.GetUsers))
-			users.POST("/import-data", config.Routes(db, categorycontroller.ImportData))
-			users.POST("/import-data-progress", config.Routes(db, categorycontroller.ImportProgres))
-			users.GET("/get-data-import", config.Routes(db, categorycontroller.GetDataImport))
-			users.GET("/get-data-perbulan-pertahun/:bulan/:tahun", config.Routes(db, categorycontroller.GetDataImportBulanTahun))
+			asersi.POST("upload-file", config.Routes(db, asersicontroller.ImportData))
 		}
+
 	}
 }

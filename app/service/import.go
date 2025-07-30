@@ -2,7 +2,10 @@ package service
 
 import (
 	"encoding/base64"
+	"encoding/csv"
 	"fmt"
+	"os"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/xuri/excelize/v2"
@@ -15,6 +18,8 @@ func CekTemplate(filepath string, modul string, request *gin.Context) int {
 		return TestImport(string(path_decode), request)
 	case "modul2":
 		return modul2Import(string(path_decode), request)
+	case "asersi_cvc":
+		return asersiCvcImport(string(path_decode), request)
 	default:
 		request.AbortWithStatusJSON(400, gin.H{
 			"error": fmt.Sprintf("Modul %s tidak ditemukan", modul),
@@ -91,6 +96,57 @@ func modul2Import(filepath string, request *gin.Context) int {
 		if rows[0][i] != expected {
 			request.AbortWithStatusJSON(400, gin.H{
 				"error": fmt.Sprintf("Kolom ke-%d harus '%s'", i+1, expected),
+			})
+			return 0
+		}
+	}
+	totalRows := len(rows) - 1
+	return totalRows
+}
+
+func asersiCvcImport(filepath string, request *gin.Context) int {
+	file, _ := os.Open(filepath)
+	defer file.Close()
+	reader := csv.NewReader(file)
+	reader.Comma = ';'
+	header, _ := reader.Read()
+	rows, _ := reader.ReadAll()
+	for i := range header {
+		header[i] = strings.TrimSpace(strings.ToLower(header[i]))
+	}
+	if len(header) < 21 {
+		request.AbortWithStatusJSON(400, gin.H{
+			"error": "File tidak sesuai template",
+		})
+		return 0
+	}
+	expectedHeader := map[int]string{
+		0:  "hose_id",
+		1:  "hose_number",
+		2:  "pump_id",
+		3:  "pump_name",
+		4:  "attendant_name",
+		5:  "delivery_id",
+		6:  "site_id",
+		7:  "city",
+		8:  "address",
+		9:  "product",
+		10: "completed_date",
+		11: "jam",
+		12: "delivery_type",
+		13: "del_sell_price",
+		14: "delivery_volume",
+		15: "delivery_value",
+		16: "vehicle_number",
+		17: "keterangan",
+		18: "batch",
+		19: "sector",
+		20: "nik",
+	}
+	for i, expected := range expectedHeader {
+		if header[i] != expected {
+			request.AbortWithStatusJSON(400, gin.H{
+				"error": fmt.Sprintf("Template Tidak Sesuai Kolom ke-%d harus '%s'", i+1, expected),
 			})
 			return 0
 		}

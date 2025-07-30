@@ -107,3 +107,15 @@ func DumpToBrowser(c *gin.Context, data ...interface{}) {
 	c.Writer.Write(jsonData)
 	c.Abort()
 }
+
+func AbortWithJSON(c *gin.Context, statusCode int, status string, message string, data interface{}) {
+	response := gin.H{
+		"status":  status,
+		"message": message,
+	}
+	if data != nil {
+		response["data"] = data
+	}
+
+	c.AbortWithStatusJSON(statusCode, response)
+}

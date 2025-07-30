@@ -48,7 +48,7 @@ func GetToken(request *gin.Context, db *gorm.DB) {
 	username := request.PostForm("username")
 	password := request.PostForm("password")
 	var user usermodel.UserModel
-	db.Table("users").Where("username", username).First(&user)
+	db.Table("asersi.users").Where("username", username).First(&user)
 
 	if user.Username != username || !helper.CheckPasswordHash(password, user.Password) {
 		request.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid username or password"})
@@ -66,7 +66,7 @@ func GetToken(request *gin.Context, db *gorm.DB) {
 			return
 		}
 
-		db.Table("users").Where("id", user.Id).Updates(map[string]interface{}{
+		db.Table("asersi.users").Where("id", user.Id).Updates(map[string]interface{}{
 			"refresh_token": refresh_token,
 		})
 
@@ -93,7 +93,7 @@ func RefreshToken(request *gin.Context, db *gorm.DB) {
 
 	var user usermodel.UserModel
 	// FROM DB
-	user_key_db := db.Table("users").Where("user_key", user_key).First(&user)
+	user_key_db := db.Table("asersi.users").Where("user_key", user_key).First(&user)
 	if user_key_db.Error != nil {
 		if errors.Is(user_key_db.Error, gorm.ErrRecordNotFound) {
 			request.JSON(http.StatusUnauthorized, gin.H{"error": "User Key not found"})
@@ -104,7 +104,7 @@ func RefreshToken(request *gin.Context, db *gorm.DB) {
 	}
 
 	// CHECK IF REQUEST TOKEN IS EMPTY
-	refresh_token_db := db.Table("users").Where("refresh_token", refresh_token).First(&user)
+	refresh_token_db := db.Table("asersi.users").Where("refresh_token", refresh_token).First(&user)
 	if refresh_token_db.Error != nil {
 		if errors.Is(refresh_token_db.Error, gorm.ErrRecordNotFound) {
 			request.JSON(http.StatusUnauthorized, gin.H{"error": "Request token not found"})

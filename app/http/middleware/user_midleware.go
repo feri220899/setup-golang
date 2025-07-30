@@ -26,7 +26,7 @@ func UserMiddleware(request *gin.Context, db *gorm.DB) {
 
 	// FROM DB
 	var user usermodel.UserModel
-	user_key_db := db.Table("users").Where("user_key", user_key).First(&user)
+	user_key_db := db.Table("asersi.users").Where("user_key", user_key).First(&user)
 	if user_key_db.Error != nil {
 		request.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "User key not found"})
 		return
